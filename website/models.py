@@ -70,13 +70,29 @@ class Trade(db.Model):
 class Budget(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Numeric(18, 2), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
 
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'category_id', 'year', 'month', name='uq_budget_scope'),
+        db.CheckConstraint('month BETWEEN 1 AND 12', name='check_budget_month'),
+        db.CheckConstraint('amount >= 0', name='check_budget_amount'),
+    )
+
 class Savings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    note = db.Column(db.String(150), nullable=False)
     target_amount = db.Column(db.Numeric(18, 2), nullable=False)
-    title = db.Column(db.String(150), nullable=False)
-    target_date = db.Column(db.Integer, nullable=False)
+    target_date = db.Column(db.Date, nullable=False)
+    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
+
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

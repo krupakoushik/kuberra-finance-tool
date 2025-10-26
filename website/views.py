@@ -460,12 +460,12 @@ def trade():
 
         # avg cost BEFORE mutating the holding
         avg_cost = (h.invested / h.quantity) if h.quantity > 0 else Decimal(0)
-        realized = total_received - (avg_cost * qty)          # ← realized PnL for this sell
+        realized = total_received - (avg_cost * qty)
 
         trade = Trade(
             user_id=current_user.id, coin_id=coin_id, side='SELL',
             quantity=qty, price_per_coin=ppc, total=total_received,
-            realized_pnl=realized, txn_date=tx_dt               # ← store it
+            realized_pnl=realized, txn_date=tx_dt
         )
         db.session.add(trade)
 
@@ -522,7 +522,29 @@ def trades(coin_id):
         fifo_realized=fifo_realized_map,
     )
 
+@views.route('/portfolio/trades/<int:coin_id>/<int:trade_id>')
+@login_required
+def delete_trade(trade_id):
+    trade = Trade.query.get_or_404(trade_id)
+    if trade.user_id != current_user.id:
+        flash("You are not authorized to delete this trade!", category='error')
+        return redirect(url_for('views.portfolio'))
 
+    h = Holding.query.filter_by(user_id=current_user.id, coin_id=trade.coin_id).first()
+    if not h:
+        flash("Holding not found for this trade.", "error")
+        return redirect(url_for('views.portfolio'))
+
+    if h.quantity == 0:
+        h.invested = Decimal(0)
+        h.price_per_coin = Decimal(0)
+    else:
+        h.price_per_coin = (h.invested / h.quantity)
+
+    db.session.delete(trade)
+    db.session.commit()
+    flash("Trade deleted successfully!", "success")
+    return redirect(url_for('views.trades', coin_id=trade.coin_id))
 
 @views.route('/stats')
 @login_required
