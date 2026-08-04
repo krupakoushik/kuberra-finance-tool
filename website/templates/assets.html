@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Assets{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Assets & Liabilities</h2>
+  <div class="text-end">
+    <div>Total Assets: <b>₹{{ "{:,.2f}".format(total_assets) }}</b></div>
+    <div>Total Liabilities: <b>₹{{ "{:,.2f}".format(total_liabilities) }}</b></div>
+    <div>Net Worth: <b>₹{{ "{:,.2f}".format(net_worth) }}</b></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card bg-dark text-white border-secondary p-3 h-100">
+      <h5 class="mb-3">Add / Update Asset</h5>
+      <form method="POST">
+        <input type="hidden" name="form_type" value="asset">
+        <input type="hidden" name="asset_id" id="asset_id">
+
+        <div class="mb-2">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" name="name" id="asset_name" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Type</label>
+          <input type="text" class="form-control" name="asset_type" id="asset_type" required placeholder="Cash, Stock, Crypto, Real Estate">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Value</label>
+          <input type="number" step="0.01" min="0" class="form-control" name="value" id="asset_value" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Note</label>
+          <input type="text" class="form-control" name="note" id="asset_note">
+        </div>
+        <button class="btn btn-secondary w-100" type="submit">Save Asset</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card bg-dark text-white border-secondary p-3 h-100">
+      <h5 class="mb-3">Add / Update Liability</h5>
+      <form method="POST">
+        <input type="hidden" name="form_type" value="liability">
+        <input type="hidden" name="liability_id" id="liability_id">
+
+        <div class="mb-2">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-control" name="name" id="liability_name" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Type</label>
+          <input type="text" class="form-control" name="liability_type" id="liability_type" required placeholder="Loan, Credit Card, EMI">
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Balance</label>
+          <input type="number" step="0.01" min="0" class="form-control" name="balance" id="liability_balance" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Note</label>
+          <input type="text" class="form-control" name="note" id="liability_note">
+        </div>
+        <button class="btn btn-secondary w-100" type="submit">Save Liability</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-2">
+  <div class="col-lg-6">
+    <div class="card bg-dark text-white border-secondary p-3">
+      <h5 class="mb-3">Your Assets</h5>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th class="text-end">Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in assets %}
+            <tr>
+              <td>{{ a.name }}</td>
+              <td>{{ a.asset_type }}</td>
+              <td class="text-end">₹{{ "{:,.2f}".format(a.value) }}</td>
+              <td class="text-end">
+                <form method="POST" action="{{ url_for('views.delete_asset', asset_id=a.id) }}" class="d-inline">
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this asset?');">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">No assets yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card bg-dark text-white border-secondary p-3">
+      <h5 class="mb-3">Your Liabilities</h5>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th class="text-end">Balance</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in liabilities %}
+            <tr>
+              <td>{{ l.name }}</td>
+              <td>{{ l.liability_type }}</td>
+              <td class="text-end">₹{{ "{:,.2f}".format(l.balance) }}</td>
+              <td class="text-end">
+                <form method="POST" action="{{ url_for('views.delete_liability', liability_id=l.id) }}" class="d-inline">
+                  <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this liability?');">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">No liabilities yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

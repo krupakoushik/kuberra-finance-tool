@@ -1,13 +1,12 @@
 {% extends "base.html" %} 
 
-{% block title %}Home{% endblock %}
+{% block title %}Portfolio{% endblock %}
 
 
 
 {% block content %}
 
 <script src="https://widgets.coingecko.com/gecko-coin-price-marquee-widget.js"></script>
-<gecko-coin-price-marquee-widget locale="en" dark-mode="true" transparent-background="true" coin-ids="" initial-currency="inr"></gecko-coin-price-marquee-widget>
 
     <h1 align="center">Hello {{ current_user.username.capitalize() }}!</h1>
     <p class="text-center text-light">

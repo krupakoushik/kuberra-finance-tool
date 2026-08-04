@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root {
+    --ink: #0b0f14;
+    --card: #0f1720;
+    --card-2: #121d28;
+    --glow: #2dd4bf;
+    --accent: #f59e0b;
+    --accent-2: #60a5fa;
+    --text: #e8eef5;
+    --muted: #91a4b7;
+    --grid: rgba(148, 163, 184, 0.15);
+  }
+  .dash-wrap {
+    font-family: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, system-ui;
+    color: var(--text);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(45, 212, 191, 0.18), transparent 55%),
+      radial-gradient(900px 500px at 90% -20%, rgba(245, 158, 11, 0.15), transparent 60%),
+      linear-gradient(180deg, #0b0f14 0%, #0c1118 100%);
+    border-radius: 18px;
+    padding: 22px;
+  }
+  .dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .dash-title {
+    font-size: clamp(22px, 2.4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .dash-sub {
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+  .dash-actions .btn {
+    border-radius: 999px;
+    border: 1px solid rgba(148,163,184,0.35);
+    color: var(--text);
+  }
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .kpi {
+    background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
+    border: 1px solid rgba(148,163,184,0.2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35);
+  }
+  .kpi .label {
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .kpi .value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+  .kpi .delta {
+    font-size: 0.85rem;
+    color: var(--accent-2);
+    margin-top: 6px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .panel {
+    background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
+    border: 1px solid rgba(148,163,184,0.2);
+    border-radius: 16px;
+    padding: 16px;
+    min-height: 260px;
+    position: relative;
+  }
+  .panel .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .panel h6 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .chip {
+    border: 1px solid rgba(148,163,184,0.25);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+  }
+  .panel .hint {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 8px;
+  }
+  .panel canvas {
+    max-height: 230px;
+  }
+  .panel.tall {
+    min-height: 340px;
+  }
+  .panel.progress-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .progress {
+    background: rgba(148, 163, 184, 0.12);
+    border-radius: 999px;
+    overflow: hidden;
+    height: 22px;
+  }
+  .progress-bar {
+    background: linear-gradient(90deg, var(--glow), var(--accent));
+    font-weight: 600;
+  }
+  @media (max-width: 992px) {
+    .kpi-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 768px) {
+    .dash-wrap {
+      padding: 16px;
+    }
+    .kpi-row {
+      grid-template-columns: 1fr;
+    }
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .panel {
+      min-height: 240px;
+    }
+  }
+</style>
+
+<div class="dash-wrap">
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">Dashboard</div>
+      <div class="dash-sub">Live view of cashflow and crypto performance</div>
+    </div>
+    <div class="dash-actions">
+      <a href="{{ url_for('views.transactions') }}" class="btn btn-outline-light me-2">Transactions</a>
+      <a href="{{ url_for('views.portfolio') }}" class="btn btn-outline-light">Portfolio</a>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="label">This Month</div>
+      <div class="value" id="kpiMonthSpend">â‚¹0</div>
+      <div class="delta">Updated just now</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Largest Category</div>
+      <div class="value" id="kpiTopCategory">â€”</div>
+      <div class="delta">Share of spend</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Crypto Value</div>
+      <div class="value" id="kpiCryptoValue">â‚¹0</div>
+      <div class="delta">Across holdings</div>
+    </div>
+    <div class="kpi">
+      <div class="label">6M Average</div>
+      <div class="value" id="kpiAvgSpend">â‚¹0</div>
+      <div class="delta">Monthly average</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel" style="grid-column: span 7;">
+      <div class="title">
+        <h6>Monthly spend trajectory</h6>
+        <span class="chip">Last 6 months</span>
+      </div>
+      <canvas id="monthlyLine" height="220"></canvas>
+      <div class="hint">Click a point to quick-add a transaction for that month.</div>
+    </div>
+
+    <div class="panel" style="grid-column: span 5;">
+      <div class="title">
+        <h6>Spending by category</h6>
+        <span class="chip">This month</span>
+      </div>
+      <canvas id="catPie" height="220"></canvas>
+      <div class="hint">Click a slice to quick-add a transaction for that category.</div>
+    </div>
+
+    <div class="panel tall" style="grid-column: span 7;">
+      <div class="title">
+        <h6>Crypto allocation</h6>
+        <span class="chip">Holdings weight</span>
+      </div>
+      <canvas id="cryptoDonut" height="240"></canvas>
+    </div>
+
+    <div class="panel progress-panel" style="grid-column: span 5;">
+      <div class="title">
+        <h6>Savings progress</h6>
+        <span class="chip">Prototype</span>
+      </div>
+      <div class="progress mb-2">
+        <div id="savingsBar" class="progress-bar" role="progressbar" style="width:0%">0%</div>
+      </div>
+      <div class="hint">Progress bar demo — connect to actual Savings model later.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Transaction modal (reused by click actions) -->
+<div class="modal fade" id="txnModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="txnForm" method="POST" action="{{ url_for('views.transactions') }}">
+      <input type="hidden" name="form_type" value="transaction">
+      <input type="hidden" name="transaction_id" id="txn_id">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Transaction</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label>Date</label>
+            <input id="txn_date" name="date" type="date" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Type</label>
+            <select name="txn" id="txn_type" class="form-control">
+              <option value="DEBIT">Debit</option>
+              <option value="CREDIT">Credit</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label>Amount</label>
+            <input id="txn_amount" name="amount" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Category</label>
+            <select name="category_id" id="txn_category" class="form-control">
+              <option value="">-- none --</option>
+              {% for c in categories %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label>Note</label>
+            <input id="txn_note" name="note" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+async function loadStats() {
+  const res = await fetch("{{ url_for('views.api_stats') }}");
+  if (!res.ok) return;
+  const payload = await res.json();
+  const fmt = (n) => "â‚¹" + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+  // Category pie
+  const catCtx = document.getElementById('catPie').getContext('2d');
+  const catColors = payload.categories.labels.map((_,i) => `hsl(${i*40 % 360} 70% 60%)`);
+  const catChart = new Chart(catCtx, {
+    type: 'pie',
+    data: { labels: payload.categories.labels, datasets: [{ data: payload.categories.values, backgroundColor: catColors }] },
+    options: {
+      onClick: (evt, items) => {
+        if (!items.length) return;
+        const idx = items[0].index;
+        const label = payload.categories.labels[idx];
+        const val = payload.categories.values[idx] || 0;
+        // prefill
+        document.getElementById('txn_amount').value = val;
+        document.getElementById('txn_type').value = 'DEBIT';
+        document.getElementById('txn_date').value = new Date().toISOString().slice(0,10);
+        // pick matching category id from returned map if present
+        const catId = payload.categories.map ? payload.categories.map[label] : null;
+        if (catId) document.getElementById('txn_category').value = catId;
+        new bootstrap.Modal(document.getElementById('txnModal')).show();
+      }
+    }
+  });
+
+  // Monthly line
+  const months = payload.monthly.labels;
+  const monthlyCtx = document.getElementById('monthlyLine').getContext('2d');
+  const monthlyChart = new Chart(monthlyCtx, {
+    type: 'line',
+    data: { labels: months, datasets: [{ label: 'Spend', data: payload.monthly.values, tension: 0.25, fill: true }]},
+    options: {
+      plugins: { legend: { display: false } },
+      onClick: (evt, items) => {
+        if (!items.length) return;
+        const idx = items[0].index;
+        const m = months[idx]; // YYYY-MM
+        document.getElementById('txn_type').value = 'DEBIT';
+        document.getElementById('txn_date').value = m + '-01';
+        document.getElementById('txn_amount').value = payload.monthly.values[idx] || '';
+        new bootstrap.Modal(document.getElementById('txnModal')).show();
+      }
+    }
+  });
+
+  // Crypto donut
+  const cryptoCtx = document.getElementById('cryptoDonut').getContext('2d');
+  const labels = payload.crypto.items.map(i => i.coin);
+  const vals = payload.crypto.items.map(i => i.value);
+  new Chart(cryptoCtx, { type: 'doughnut', data: { labels, datasets: [{ data: vals }] } });
+
+  // KPI cards
+  const monthSpend = payload.monthly.values?.slice(-1)?.[0] || 0;
+  const avgSpend = payload.monthly.values?.length
+    ? payload.monthly.values.reduce((a,b) => a + b, 0) / payload.monthly.values.length
+    : 0;
+  const topIdx = payload.categories.values?.length
+    ? payload.categories.values.indexOf(Math.max(...payload.categories.values))
+    : -1;
+  const topName = topIdx >= 0 ? payload.categories.labels[topIdx] : "â€”";
+  const topVal = topIdx >= 0 ? payload.categories.values[topIdx] : 0;
+
+  document.getElementById('kpiMonthSpend').innerText = fmt(monthSpend);
+  document.getElementById('kpiAvgSpend').innerText = fmt(avgSpend);
+  document.getElementById('kpiCryptoValue').innerText = fmt(payload.crypto.total || 0);
+  document.getElementById('kpiTopCategory').innerText = topIdx >= 0 ? `${topName} (${fmt(topVal)})` : "â€”";
+
+  // savings bar example (you'll wire real savings later)
+  const bar = document.getElementById('savingsBar');
+  const demoPct = Math.round((payload.crypto.total / 100000) * 100);
+  bar.style.width = Math.min(100, demoPct) + '%';
+  bar.innerText = Math.min(100, demoPct) + '%';
+}
+
+document.addEventListener('DOMContentLoaded', loadStats);
+</script>
+{% endblock %}

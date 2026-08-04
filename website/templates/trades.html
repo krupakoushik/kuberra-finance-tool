@@ -64,13 +64,15 @@
 
                 <td>
                 <button type="button" class="btn btn-dark fw-bold"
-                        data-bs-toggle="modal" data-bs-target="#addCryptoTransactionForm">
+                        data-bs-toggle="modal" data-bs-target="#editTradeModal-{{ t.id }}">
                     <i class="fa-solid fa-pen"></i>
                 </button>
-                <a href="/portfolio/trades/{{ t.coin_id }}/{{ t.trade_id }}" class="btn btn-dark fw-bold"
-                    onclick="return confirm('Are you sure you want to delete this trade?');">
-                    <i class="fa-solid fa-trash"></i>
-                </a>
+                <form method="post" action="{{ url_for('views.delete_trade', coin_id=t.coin_id, trade_id=t.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-dark fw-bold"
+                            onclick="return confirm('Are you sure you want to delete this trade?');">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
                 </td>
             </tr>
         {% endfor %}
@@ -78,7 +80,79 @@
         </tbody>
     </table>
 
-    
+    {% for t in trades %}
+    <div id="editTradeModal-{{ t.id }}" class="modal fade" data-bs-theme="dark" tabindex="-1" aria-labelledby="editTradeModalLabel-{{ t.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTradeModalLabel-{{ t.id }}">Edit Trade</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ url_for('views.edit_trade', coin_id=t.coin_id, trade_id=t.id) }}">
+                        <div class="mb-3">
+                            <label for="side-{{ t.id }}" class="form-label">Type</label>
+                            <select class="form-select" id="side-{{ t.id }}" name="side" required>
+                                <option value="BUY" {% if t.side == 'BUY' %}selected{% endif %}>BUY</option>
+                                <option value="SELL" {% if t.side == 'SELL' %}selected{% endif %}>SELL</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="price-{{ t.id }}" class="form-label">Price per coin</label>
+                            <input type="number"
+                                   step="0.01"
+                                   min="0"
+                                   inputmode="decimal"
+                                   class="form-control"
+                                   id="price-{{ t.id }}"
+                                   name="price_per_coin"
+                                   value="{{ t.price_per_coin }}"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="qty-{{ t.id }}" class="form-label">Quantity</label>
+                            <input type="number"
+                                   step="0.00000001"
+                                   min="0"
+                                   inputmode="decimal"
+                                   class="form-control"
+                                   id="qty-{{ t.id }}"
+                                   name="quantity"
+                                   value="{{ t.quantity }}"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="total-{{ t.id }}" class="form-label">Total (Cost/Proceeds)</label>
+                            <input type="number"
+                                   step="0.01"
+                                   min="0"
+                                   inputmode="decimal"
+                                   class="form-control"
+                                   id="total-{{ t.id }}"
+                                   name="total"
+                                   value="{{ t.total }}"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dt-{{ t.id }}" class="form-label">Date & Time</label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   id="dt-{{ t.id }}"
+                                   name="datetime"
+                                   value="{{ t.txn_date.strftime('%Y-%m-%dT%H:%M') if t.txn_date else '' }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 
 
 {% endblock %}

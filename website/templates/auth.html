@@ -1,0 +1,82 @@
+{% extends "base.html" %} 
+
+{% block title %}Auth{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center mt-4">
+  <div class="col-md-6 col-lg-5">
+    <div class="card bg-dark text-white border-secondary">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-center mb-3">
+          <a class="btn btn-outline-light {% if mode == 'login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+          <a class="btn btn-outline-light ms-2 {% if mode == 'register' %}active{% endif %}" href="{{ url_for('auth.register') }}">Register</a>
+        </div>
+
+        {% if mode == 'login' %}
+        <h3 class="text-center mb-3">Login</h3>
+        <form method="POST">
+          <div class="form-floating mb-3">
+            <input type="email" class="form-control" name="email" id="loginEmail" placeholder="name@example.com" required>
+            <label for="loginEmail">Email address</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="password" id="loginPassword" name="password" class="form-control" placeholder="Password" required>
+            <label for="loginPassword">Password</label>
+          </div>
+
+          <button class="btn btn-secondary w-100" type="submit">Login</button>
+
+          <div class="text-center my-3 text-light">or</div>
+
+          <a class="btn btn-outline-light w-100" href="{{ url_for('auth.login_google') }}">
+            Continue with Google
+          </a>
+
+          <div class="form-text text-light text-center mt-3">
+            Don't have an account? <a style="text-decoration: none;" href="{{ url_for('auth.register') }}">Register now</a>
+          </div>
+        </form>
+        {% else %}
+        <h3 class="text-center mb-3">Register</h3>
+        <form method="POST">
+          <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="regUsername" name="username" placeholder="username" required>
+            <label for="regUsername">Username</label>
+          </div>
+          
+          <div class="form-floating mb-3">
+            <input type="email" class="form-control" id="regEmail" name="email" placeholder="name@example.com" required>
+            <label for="regEmail">Email address</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="password" id="regPassword" class="form-control" name="password" placeholder="password" required>
+            <label for="regPassword">Password</label>
+          </div>
+
+          <div class="form-floating mb-3">
+            <input type="password" id="regCpass" name="cpass" class="form-control" placeholder="password" required>
+            <label for="regCpass">Confirm Password</label>
+          </div>
+
+          <button class="btn btn-secondary w-100" type="submit">Create account</button>
+
+          <div class="text-center my-3 text-light">or</div>
+
+          <a class="btn btn-outline-light w-100" href="{{ url_for('auth.login_google') }}">
+            Continue with Google
+          </a>
+
+          <div class="form-text text-light text-center mt-3">
+            Already have an account? <a style="text-decoration: none;" href="{{ url_for('auth.login') }}">Login now</a>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

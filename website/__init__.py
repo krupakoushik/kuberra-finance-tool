@@ -5,17 +5,30 @@ import os
 from dotenv import load_dotenv
 from flask_login import LoginManager
 from decimal import Decimal
+from authlib.integrations.flask_client import OAuth
 
 load_dotenv()
 
 db = SQLAlchemy()
+oauth = OAuth()
 NAME = "database.db"
 
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "").strip()
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{NAME}'
+    app.config['GOOGLE_CLIENT_ID'] = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+    app.config['GOOGLE_CLIENT_SECRET'] = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
     db.init_app(app)
+    oauth.init_app(app)
+
+    oauth.register(
+        name="google",
+        client_id=app.config["GOOGLE_CLIENT_ID"],
+        client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid email profile"},
+    )
 
     @app.template_filter('fmtqty')
     def fmtqty(x, places=8):

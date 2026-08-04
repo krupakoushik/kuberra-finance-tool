@@ -20,14 +20,22 @@
         <input type="password" id="flaotingPassword" name="password" class="form-control" placeholder="Password" required>
         <label for="flaotingPassword">Password</label>
         </div>
+
+
+        </div>
         
         <button class="btn btn-secondary" type="submit">Login</button>
+
+        <div class="text-center my-3 text-light">or</div>
+
+        <a class="btn btn-outline-light w-100" href="{{ url_for('auth.login_google') }}">
+            Continue with Google
+        </a>
 
         <div id="new" class="form-text text-light">
             Don't have an account? <a style = "text-decoration: none;" href= "{{ url_for('auth.register') }}">Register now</a>
         </div>
 
-    </div>
 
 </form>
 

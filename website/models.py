@@ -8,6 +8,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    google_id = db.Column(db.String(255), unique=True, nullable=True)
     date_created = db.Column(db.DateTime(timezone=True), server_default=func.now())
     transactions = db.relationship('Transaction', backref='owner', lazy=True)
     categories = db.relationship('Category', backref='owner', lazy=True)
@@ -34,9 +35,9 @@ class Transaction(db.Model):
 
 class Coin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    cg_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
-    coin = db.Column(db.String, nullable=False)
-    symbol = db.Column(db.String,  nullable=False)
+    cg_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    coin = db.Column(db.String, nullable=True)
+    symbol = db.Column(db.String,  nullable=True)
     holdings = db.relationship('Holding', backref='coin', lazy=True)
 
 class Holding(db.Model):
@@ -94,5 +95,25 @@ class Savings(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
 
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class Asset(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    asset_type = db.Column(db.String(50), nullable=False)  # e.g., Cash, Stock, Crypto, Real Estate
+    value = db.Column(db.Numeric(18, 2), nullable=False, default=0)
+    note = db.Column(db.String, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class Liability(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    liability_type = db.Column(db.String(50), nullable=False)  # e.g., Credit Card, Loan, Mortgage
+    balance = db.Column(db.Numeric(18, 2), nullable=False, default=0)
+    note = db.Column(db.String, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
